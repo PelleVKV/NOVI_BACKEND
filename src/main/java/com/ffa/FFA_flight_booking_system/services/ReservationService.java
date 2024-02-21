@@ -3,6 +3,7 @@ package com.ffa.FFA_flight_booking_system.services;
 import com.ffa.FFA_flight_booking_system.dto.FlightDTO;
 import com.ffa.FFA_flight_booking_system.dto.ReservationDTO;
 import com.ffa.FFA_flight_booking_system.dto.UserDTO;
+import com.ffa.FFA_flight_booking_system.exceptions.NotFoundException;
 import com.ffa.FFA_flight_booking_system.models.Flight;
 import com.ffa.FFA_flight_booking_system.models.Reservation;
 import com.ffa.FFA_flight_booking_system.models.User;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,8 +27,17 @@ public class ReservationService {
         this.flightService = flightService;
     }
 
-    public List<Reservation> getAllReservations() {
-        return reservationRepository.findAll();
+    public List<ReservationDTO> getAllReservations() {
+        try {
+            List<Reservation> reservations = reservationRepository.findAll();
+            List<ReservationDTO> reservationDTOS = new ArrayList<>();
+            for (Reservation reservation : reservations) {
+                reservationDTOS.add(fromReservation(reservation));
+            }
+            return reservationDTOS;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public ReservationDTO getReservationByReservationNumber(String reservationNumber) {
@@ -34,21 +45,27 @@ public class ReservationService {
         return fromReservation(reservation);
     }
 
-    public List<Reservation> createReservations(List<Reservation> reservations) {
-        return reservationRepository.saveAll(reservations);
-    }
-
-    public ResponseEntity<ReservationDTO> createReservation(ReservationDTO reservationDTO) {
+    public ReservationDTO createReservation(ReservationDTO reservationDTO) {
         try {
             if (reservationDTO == null || userService.getUser(reservationDTO.getUsername()) == null ||
                     flightService.getFlightByFlightNumber(reservationDTO.getFlightNumber()) == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+                throw new NotFoundException("User or Flight not found");
             }
+
             Reservation reservation = toReservation(reservationDTO);
             reservationRepository.save(reservation);
-            return ResponseEntity.status(HttpStatus.CREATED).body(reservationDTO);
+            return reservationDTO;
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            throw new RuntimeException("Failed to create reservation", e);
+        }
+    }
+
+    public void deleteReservation(ReservationDTO reservationDTO) throws NotFoundException {
+        Reservation reservation = toReservation(reservationDTO);
+        if (reservation != null) {
+            reservationRepository.delete(reservation);
+        } else {
+            throw new NotFoundException("Reservation not found");
         }
     }
 
@@ -72,8 +89,8 @@ public class ReservationService {
         }
 
         FlightDTO flightDTO = flightService.getFlightByFlightNumber(dto.getFlightNumber());
-        if (flightDTO != null) {
-            Flight flight = flightService.toFlight(flightDTO);
+        Flight flight = flightService.toFlight(flightDTO);
+        if (flight != null) {
             reservation.setFlight(flight);
         }
 

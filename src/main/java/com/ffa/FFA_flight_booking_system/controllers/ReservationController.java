@@ -49,13 +49,18 @@ public class ReservationController {
     // GET MAPPING, RETRIEVING DATA
 
     @GetMapping
-    public List<Reservation> getAllReservations() {
+    public List<ReservationDTO> getAllReservations() {
         return reservationService.getAllReservations();
     }
 
     @GetMapping("/{reservationNumber}")
     public ResponseEntity<Object> getReservationByReservationNumber(@PathVariable String reservationNumber) {
-        return ResponseEntity.ok().body(reservationService.getReservationByReservationNumber(reservationNumber));
+        ReservationDTO reservationDTO = reservationService.getReservationByReservationNumber(reservationNumber);
+        if (reservationDTO != null) {
+            return ResponseEntity.ok().body(reservationDTO);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/download/{reservationNumber}")
@@ -63,18 +68,17 @@ public class ReservationController {
         try {
             // Validation Checks
             if (userDetails == null || reservationNumber == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
 
             ReservationDTO dto = reservationService.getReservationByReservationNumber(reservationNumber);
             Reservation reservation = reservationService.toReservation(dto);
 
-            String currentUsername = userDetails.getUsername();
-            UserDTO currentDTO = userService.getUser(currentUsername);
-            User currentUser = userService.toUser(currentDTO);
+            UserDTO currentUser = userService.getUser(userDetails.getUsername());
+            boolean hasAdminAuth = userService.hasAdminAuthority(currentUser);
 
-            if (!currentUsername.equals(reservation.getUser().getUsername()) && !currentUser.hasAuthority("ADMIN")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+            if (!currentUser.getUsername().equals(reservation.getUser().getUsername()) && !hasAdminAuth) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
             HttpHeaders headers = new HttpHeaders();
@@ -85,7 +89,8 @@ public class ReservationController {
 
             return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            logger.error("Error downloading reservation with number {}: {}", reservationNumber, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -95,38 +100,58 @@ public class ReservationController {
     public ResponseEntity<ReservationDTO> createReservation(@RequestBody ReservationDTO reservationDTO, @AuthenticationPrincipal UserDetails userDetails) {
         try {
             User user = userService.toUser(userService.getUser(reservationDTO.getUsername()));
-            Flight flight = flightService.toFlight(flightService.getFlightByFlightNumber(reservationDTO.getFlightNumber()));
-
+            FlightDTO flightDTO = flightService.getFlightByFlightNumber(reservationDTO.getFlightNumber());
+            Flight flight = flightService.toFlight(flightDTO);
             // Validation Checks
             if (userDetails == null || user == null || flight == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
             }
 
-            String currentUsername = userDetails.getUsername();
-            UserDTO dto = userService.getUser(currentUsername);
-            User currentUser = userService.toUser(dto);
+            UserDTO currentUser = userService.getUser(userDetails.getUsername());
+            boolean hasAdminAuth = userService.hasAdminAuthority(currentUser);
 
             // Can only create reservation for other profiles, except ADMIN
-            if (!currentUsername.equals(reservationDTO.getUsername()) && !currentUser.hasAuthority("ADMIN")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+            if (!userDetails.getUsername().equals(reservationDTO.getUsername()) && !hasAdminAuth) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
             // Can only make reservation if flight capacity is not met
-            if (flight.getAirplane().getAirplaneCapacity() >= flight.getReservations().size()) {
-                throw new CapacityExceededException("This flight is fully booked");
+            if (flight.getFilledSeats() >= flight.getAirplane().getAirplaneCapacity()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
-
-            return reservationService.createReservation(reservationDTO);
+            flightService.incrementFilledSeats(flight.getFlightNumber(), 1);
+            return ResponseEntity.ok().body(reservationDTO);
         } catch (Exception e) {
-            // Handle exceptions
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            logger.error("Error creating reservation with number {}: {}", reservationDTO.getReservationNumber(), e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 
-    @PostMapping("/create_reservations")
-    public List<Reservation> createReservations(List<Reservation> reservations) {
-        return reservationService.createReservations(reservations);
-    }
+    // DELETE MAPPING, DELETE DATA
 
+    @DeleteMapping("/{reservationNumber}")
+    public ResponseEntity<ReservationDTO> deleteReservation(@PathVariable String reservationNumber, @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            ReservationDTO reservationDTO = reservationService.getReservationByReservationNumber(reservationNumber);
+
+            UserDTO currentUser = userService.getUser(userDetails.getUsername());
+            boolean hasAdminAuth = userService.hasAdminAuthority(currentUser);
+
+            // Only able to delete if ADMIN
+            if (!hasAdminAuth) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            if (reservationDTO != null) {
+                reservationService.deleteReservation(reservationDTO);
+                return ResponseEntity.ok(reservationDTO);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            logger.error("Error deleting reservation with number {}: {}", reservationNumber, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

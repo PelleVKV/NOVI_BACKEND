@@ -24,9 +24,12 @@ public class Flight {
     @Column(name = "estimated_time_of_arrival", nullable = false)
     private LocalDateTime eta;
 
+    @Column(name = "filled_seats")
+    private int filledSeats;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "airplane_code")
-    @JsonBackReference
+    @JsonManagedReference
     private Airplane airplane;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -103,5 +106,13 @@ public class Flight {
 
     public void setReservations(Set<Reservation> reservations) {
         this.reservations = reservations;
+    }
+
+    public int getFilledSeats() {
+        return filledSeats;
+    }
+
+    public void setFilledSeats(int filledSeats) {
+        this.filledSeats = filledSeats;
     }
 }

@@ -50,7 +50,7 @@ public class SpringSecurityConfig {
                 .httpBasic(withDefaults())
                 .cors().and()
                 .authorizeHttpRequests((auth) -> auth
-                        .antMatchers(HttpMethod.GET,"/user/**").permitAll()
+                        .antMatchers(HttpMethod.GET,"/user/**").hasAnyAuthority("USER", "ADMIN")
                         .antMatchers(HttpMethod.GET,"/user").hasAuthority("ADMIN")
                         .antMatchers(HttpMethod.POST, "/user").hasAuthority("ADMIN")
                         .antMatchers(HttpMethod.POST,"/user/**").hasAuthority("ADMIN")
@@ -64,6 +64,15 @@ public class SpringSecurityConfig {
                         .antMatchers(HttpMethod.GET,"/airports/**").hasAuthority("ADMIN")
                         .antMatchers(HttpMethod.POST,"/airports").hasAuthority("ADMIN")
                         .antMatchers(HttpMethod.POST,"/airports/**").hasAuthority("ADMIN")
+
+                        .antMatchers(HttpMethod.GET, "/flights").hasAnyAuthority("USER", "ADMIN")
+                        .antMatchers(HttpMethod.GET, "/flights/**").hasAnyAuthority("USER", "ADMIN")
+                        .antMatchers(HttpMethod.POST,"/flights").hasAuthority("ADMIN")
+                        .antMatchers(HttpMethod.POST,"/flights/**").hasAuthority("ADMIN")
+
+                        .antMatchers(HttpMethod.GET, "/reservation").hasAnyAuthority("USER", "ADMIN")
+                        .antMatchers(HttpMethod.GET, "/reservation/download/").hasAnyAuthority("USER", "ADMIN")
+                        .antMatchers(HttpMethod.POST, "/reservation/create_reservation").hasAnyAuthority("USER", "ADMIN")
 
                         .antMatchers("/authenticated").authenticated()
                         .antMatchers("/authenticate").permitAll()

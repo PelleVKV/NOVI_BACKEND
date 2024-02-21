@@ -2,6 +2,8 @@ package com.ffa.FFA_flight_booking_system.controllers;
 
 import com.ffa.FFA_flight_booking_system.dto.UserDTO;
 import com.ffa.FFA_flight_booking_system.models.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,6 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/user")
 public class UserController {
+    private static final Logger logger = LoggerFactory.getLogger(ReservationController.class);
     private final UserService userService;
 
     @Autowired
@@ -49,6 +52,25 @@ public class UserController {
         }
     }
 
+    @GetMapping("/{username}/isAdmin")
+    public ResponseEntity<Boolean> isUserAdmin(@PathVariable String username) {
+        try {
+            UserDTO dto = userService.getUser(username);
+            if (dto != null) {
+                if (userService.hasAdminAuthority(dto)) {
+                    return ResponseEntity.ok().body(true);
+                } else {
+                    return ResponseEntity.ok().body(false);
+                }
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            logger.error("Error finding user with authority {}: {}", username, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     // POST MAPPING, SENDING DATA
 
     @PostMapping("/create_multiple_users")
@@ -59,7 +81,7 @@ public class UserController {
     @PostMapping(value = "/create_user", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
         String newUsername = userService.createUser(userDTO);
-        userService.addAuthority(newUsername, "ROLE_USER");
+        userService.addAuthority(newUsername, "USER");
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{username}")
                 .buildAndExpand(newUsername).toUri();

@@ -1,24 +1,21 @@
 package com.ffa.FFA_flight_booking_system.utils;
 
-import com.ffa.FFA_flight_booking_system.models.Reservation;
-import com.ffa.FFA_flight_booking_system.models.User;
+import com.ffa.FFA_flight_booking_system.dto.ReservationDTO;
+import com.ffa.FFA_flight_booking_system.services.FlightService;
 import com.ffa.FFA_flight_booking_system.services.ReservationService;
-import com.ffa.FFA_flight_booking_system.services.UserService;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Set;
 
 @Component
 public class CsvGeneratorUtil {
-    private static final String CSV_HEADER = "Reservation Number,Username,Flight Number\n";
-
-    private final UserService userService;
+    private static final String CSV_HEADER = "Reservation Number,Username,Flight Number,ETD,ETA,Departure Airport,Arrival Airport\n";
     private final ReservationService reservationService;
+    private final FlightService flightService;
 
-    public CsvGeneratorUtil(UserService userService, ReservationService reservationService) {
-        this.userService = userService;
+    private CsvGeneratorUtil(ReservationService reservationService, FlightService flightService) {
         this.reservationService = reservationService;
+        this.flightService = flightService;
     }
 
     public String generateCsv(String reservationNumber) {
@@ -26,16 +23,16 @@ public class CsvGeneratorUtil {
             StringBuilder csv = new StringBuilder();
             csv.append(CSV_HEADER);
 
-            List<Reservation> reservations = reservationService.getAllReservations();
-            for (Reservation reservation : reservations) {
-                if (reservation.getReservationNumber().equals(reservationNumber)) {
-                    csv.append(reservation.getReservationNumber()).append(",")
-                            .append(reservation.getUser().getUsername()).append(",")
-                            .append(reservation.getFlight().getFlightNumber()).append(",")
-                            .append(reservation.getFlight().getEtd()).append(",")
-                            .append(reservation.getFlight().getEta()).append(",")
-                            .append(reservation.getFlight().getDepartureAirport().getAirportName()).append(",")
-                            .append(reservation.getFlight().getArrivalAirport().getAirportName()).append("\n");
+            List<ReservationDTO> reservations = reservationService.getAllReservations();
+            for (ReservationDTO reservationDTO : reservations) {
+                if (reservationDTO.getReservationNumber().equals(reservationNumber)) {
+                    csv.append(reservationDTO.getReservationNumber()).append(",")
+                            .append(reservationDTO.getUsername()).append(",")
+                            .append(reservationDTO.getFlightNumber()).append(",")
+                            .append(flightService.getFlightByFlightNumber(reservationDTO.flightNumber).getEtd()).append(",")
+                            .append(flightService.getFlightByFlightNumber(reservationDTO.flightNumber).getEta()).append(",")
+                            .append(flightService.getFlightByFlightNumber(reservationDTO.flightNumber).getDep_airport_name()).append(",")
+                            .append(flightService.getFlightByFlightNumber(reservationDTO.flightNumber).getArr_airport_name()).append(",");
                 }
             }
 
