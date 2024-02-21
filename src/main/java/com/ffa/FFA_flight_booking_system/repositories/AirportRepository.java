@@ -17,7 +17,7 @@ public interface AirportRepository extends JpaRepository<Airport, String> {
     @Override
     List<Airport> findAll();
 
-    Optional<Airport> findByAirportName(String airportName);
+    Airport findByAirportName(String airportName);
 
     @Override
     <S extends Airport> List<S> saveAll(Iterable<S> entities);

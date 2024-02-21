@@ -72,6 +72,18 @@ public class UserService {
         return userRepository.saveAll(users);
     }
 
+    public boolean hasAdminAuthority(UserDTO dto) {
+        boolean hasAdminAuthority = false;
+        if (dto != null && dto.getAuthorities() != null) {
+            for (Authority authority : dto.getAuthorities()) {
+                if ("ADMIN".equals(authority.getAuthority())) {
+                    hasAdminAuthority = true;
+                    break;
+                }
+            }
+        }
+        return hasAdminAuthority;
+    }
 
     public void addAuthority(String username, String authority) {
         Optional<User> userOptional = userRepository.findByUsername(username);

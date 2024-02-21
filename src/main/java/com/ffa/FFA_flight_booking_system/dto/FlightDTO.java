@@ -1,5 +1,7 @@
 package com.ffa.FFA_flight_booking_system.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
@@ -13,15 +15,18 @@ public class FlightDTO {
     @NotBlank
     public String airplaneCode;
     @NotBlank
+    public int filledSeats;
+    @NotBlank
     public String dep_airport_name;
     @NotBlank
     public String arr_airport_name;
 
-    public FlightDTO(String flightNumber, LocalDateTime etd, LocalDateTime eta, String airplaneCode, String dep_airport_name, String arr_airport_name) {
+    public FlightDTO(String flightNumber, LocalDateTime etd, LocalDateTime eta, String airplaneCode, int filledSeats, String dep_airport_name, String arr_airport_name) {
         this.flightNumber = flightNumber;
         this.etd = etd;
         this.eta = eta;
         this.airplaneCode = airplaneCode;
+        this.filledSeats = filledSeats;
         this.dep_airport_name = dep_airport_name;
         this.arr_airport_name = arr_airport_name;
     }
@@ -76,5 +81,13 @@ public class FlightDTO {
 
     public void setArr_airport_name(String arr_airport_name) {
         this.arr_airport_name = arr_airport_name;
+    }
+
+    public int getFilledSeats() {
+        return filledSeats;
+    }
+
+    public void setFilledSeats(int filledSeats) {
+        this.filledSeats = filledSeats;
     }
 }

@@ -14,7 +14,7 @@ public interface FlightRepository extends JpaRepository<Flight, String> {
     @Override
     <S extends Flight> S save(S entity);
 
-    Flight findByFlightNumber(String s);
+    Flight findByFlightNumber(String flightNumber);
 
     @Override
     boolean existsById(String s);

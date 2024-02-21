@@ -8,7 +8,7 @@ INSERT INTO authority (username, authority) VALUES
 ('Pelle1', 'USER'),
 ('Pelle1', 'ADMIN'),
 ('Pelle2', 'ADMIN'),
-('Pelle2', 'USER');
+('Pelle3', 'USER');
 
 -- Initial Database Data
 INSERT INTO airports (airport_name, airport_country, airport_city) VALUES
@@ -46,17 +46,15 @@ INSERT INTO airplanes (airplane_code, airplane_type, airplane_capacity, airport_
 ('FFA0040', 'Cessna 441', 9, 'Singapore Changi'),('FFA0041', 'Cessna Citation', 9, 'Incheon International'),('FFA0042', 'Cessna Conquest', 9, 'Denver International'),
 ('FFA0043', 'Cessna Mustang', 9, 'Hong Kong International'),('FFA0044', 'Cessna Skyhawk', 9, 'Sydney Kingsford Smith'),('FFA0045', 'Cessna Skylane', 9, 'Doha Hamad'),
 ('FFA0046', 'Cessna Stationair', 9, 'Schiphol'),('FFA0047', 'Cessna TTx', 9, 'Heathrow'),('FFA0048', 'Cessna Turbo Stationair', 9, 'Hartsfield-Jackson'),
-('FFA0049', 'Cessna Turbo Skylane', 9, 'Beijing Capital'),('FFA0050', 'Cessna Turbo Stationair', 9, 'Dubai International');
+('FFA0049', 'Cessna Turbo Skylane', 9, 'Beijing Capital'),('FFA0050', 'Cessna Turbo Stationair', 9, 'Dubai International'),
+('FFA0051', 'Cessna Testing', 3, 'Dubai International');
 
 -- Initial flights
-INSERT INTO flights (flight_number, estimated_time_of_departure, estimated_time_of_arrival, airplane_code, departure_airport_name, arrival_airport_name) VALUES
-('FFA12010001SCHE', '2024-12-01 08:00:00', '2023-12-01 10:00:00', 'FFA0001', 'Schiphol', 'Heathrow'),
-('FFA12040003HABE', '2024-12-04 10:30:00', '2023-12-02 14:00:00', 'FFA0003', 'Hartsfield-Jackson', 'Beijing Capital'),
-('FFA12090005DUTO', '2024-12-09 12:15:00', '2023-12-03 18:30:00', 'FFA0005', 'Dubai International', 'Tokyo Haneda'),
-('FFA12140007LOOH', '2024-12-14 15:45:00', '2023-12-04 20:30:00', 'FFA0007', 'Los Angeles International', 'O Hare International'),
-('FFA01040009FRSI', '2025-01-04 18:30:00', '2024-12-05 22:45:00', 'FFA0009', 'Frankfurt', 'Singapore Changi'),
-('FFA01060011ICDE', '2025-01-06 20:00:00', '2024-12-06 23:30:00', 'FFA0011', 'Incheon International', 'Denver International'),
-('FFA01070013HOSY', '2025-01-07 22:45:00', '2024-12-08 03:15:00', 'FFA0013', 'Hong Kong International', 'Sydney Kingsford Smith'),
-('FFA01120015DOSC', '2025-01-12 01:30:00', '2024-12-09 04:45:00', 'FFA0015', 'Doha Hamad', 'Schiphol'),
-('FFA02100017HEHA', '2025-02-10 04:15:00', '2024-12-10 07:30:00', 'FFA0017', 'Heathrow', 'Hartsfield-Jackson'),
-('FFA02110019BEDU', '2025-02-11 07:45:00', '2024-12-11 11:00:00', 'FFA0019', 'Beijing Capital', 'Dubai International');
+INSERT INTO flights (flight_number, estimated_time_of_departure, estimated_time_of_arrival, airplane_code, departure_airport_name, arrival_airport_name, filled_seats) VALUES
+('FFA12010001SCHE', '2024-12-01 08:00:00', '2024-12-01 10:00:00', 'FFA0001', 'Schiphol', 'Frankfurt', 0),
+('FFA12040003HABE', '2024-12-04 10:30:00', '2024-12-04 14:00:00', 'FFA0003', 'Hartsfield-Jackson', 'Heathrow', 0),
+('FFA12090005DUTO', '2024-12-09 12:15:00', '2024-12-09 18:30:00', 'FFA0050', 'Dubai International', 'Tokyo Haneda', 0),
+
+('TESTFLIGHT1', '2025-01-01 12:00:00', '2025-01-01 14:00:00', 'FFA0051', 'Dubai International', 'Tokyo Haneda', 0),
+('TESTFLIGHT2', '2025-02-01 12:00:00', '2025-02-01 14:00:00', 'FFA0051', 'Tokyo Haneda', 'Doha Hamad', 0),
+('TESTFLIGHT3', '2025-03-01 12:00:00', '2025-03-01 14:00:00', 'FFA0051', 'Doha Hamad', 'Dubai International', 0);

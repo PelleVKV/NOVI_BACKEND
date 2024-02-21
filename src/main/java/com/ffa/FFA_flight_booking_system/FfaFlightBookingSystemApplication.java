@@ -15,7 +15,7 @@ import org.springframework.context.annotation.ComponentScan;
  *
  * Project: FFA Booking System
  * Author: Pelle van Ketwich Verschuur
- * Date: [Current Date] TODO: update date
+ * Date: 21/02/2024
  * Version: 1.0
  */
 

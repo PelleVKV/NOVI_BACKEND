@@ -1,5 +1,6 @@
 package com.ffa.FFA_flight_booking_system.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.ffa.FFA_flight_booking_system.models.Authority;
@@ -14,13 +15,12 @@ import java.util.Set;
 public class UserDTO {
     @NotBlank
     public String username;
-
     @NotBlank
     @Size(min = 6, max = 30)
     public String password;
-
+    @JsonIgnore
     public Set<Authority> authorities;
-
+    @JsonIgnore
     public Set<Reservation> reservations;
     public boolean enabled = true;
 
