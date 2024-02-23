@@ -11,29 +11,5 @@ import java.util.Optional;
 
 @Repository
 public interface AirportRepository extends JpaRepository<Airport, String> {
-    @Override
-    <S extends Airport> S save(S entity);
-
-    @Override
-    List<Airport> findAll();
-
-    Airport findByAirportName(String airportName);
-
-    @Override
-    <S extends Airport> List<S> saveAll(Iterable<S> entities);
-
-    @Override
-    void deleteById(String s);
-
-    @Override
-    void delete(Airport entity);
-
-    @Override
-    void deleteAllById(Iterable<? extends String> strings);
-
-    @Override
-    void deleteAll(Iterable<? extends Airport> entities);
-
-    @Override
-    void deleteAll();
+    Optional<Airport> findByAirportName(String airportName);
 }

@@ -1,14 +1,33 @@
 -- Initial Tester Accounts
 INSERT INTO "user" (username, enabled, password) VALUES
-('Pelle1', true, '1234'),
-('Pelle2', true, '1234'),
-('Pelle3', true, '1234');
+('USER1', true, '1234'),
+('USER2', true, '1234'),
+('USER3', true, '1234'),
+('USER4', true, '1234'),
+('USER5', true, '1234'),
+('USER6', true, '1234'),
+('USER7', true, '1234');
+
 
 INSERT INTO authority (username, authority) VALUES
-('Pelle1', 'USER'),
-('Pelle1', 'ADMIN'),
-('Pelle2', 'ADMIN'),
-('Pelle3', 'USER');
+('USER1', 'USER'),('USER1', 'ADMIN'),('USER1', 'ATC'),
+('USER2', 'USER'),('USER2', 'ADMIN'),
+('USER3', 'USER'),('USER3', 'ATC'),
+('USER4', 'ADMIN'),('USER4', 'ATC'),
+('USER5', 'USER'),('USER6', 'ADMIN'),('USER7', 'ATC');
+
+
+/*
+    USER1, has all authorities (USER, ADMIN, ATC)
+    USER2, has (USER, ADMIN)
+    USER3, has (USER, ATC)
+    USER4, has (ADMIN, ATC)
+    USER5, has (USER)
+    USER6, has (ADMIN)
+    USER7, has (ATC)
+
+    This way there is an account for every scenario
+*/
 
 -- Initial Database Data
 INSERT INTO airports (airport_name, airport_country, airport_city) VALUES
@@ -30,31 +49,28 @@ INSERT INTO airports (airport_name, airport_country, airport_city) VALUES
 
 -- Initial airplanes
 INSERT INTO airplanes (airplane_code, airplane_type, airplane_capacity, airport_name) VALUES
-('FFA0001', 'Boeing 737', 215, 'Schiphol'),('FFA0002', 'Boeing 747', 416, 'Heathrow'),('FFA0003', 'Boeing 757', 295, 'Hartsfield-Jackson'),
-('FFA0004', 'Boeing 767', 375, 'Beijing Capital'),('FFA0005', 'Boeing 777', 550, 'Dubai International'),('FFA0006', 'Boeing 787', 330, 'Tokyo Haneda'),
-('FFA0007', 'Airbus A300', 266, 'Los Angeles International'),('FFA0008', 'Airbus A310', 280, 'O Hare International'),('FFA0009', 'Airbus A320', 180, 'Frankfurt'),
-('FFA0010', 'Airbus A330', 335, 'Singapore Changi'),('FFA0011', 'Airbus A340', 440, 'Incheon International'),('FFA0012', 'Airbus A350', 325, 'Denver International'),
-('FFA0013', 'Airbus A380', 853, 'Hong Kong International'),('FFA0014', 'Embraer E170', 80, 'Sydney Kingsford Smith'),('FFA0015', 'Embraer E175', 88, 'Doha Hamad'),
-('FFA0016', 'Embraer E190', 106, 'Schiphol'),('FFA0017', 'Embraer E195', 124, 'Heathrow'),('FFA0018', 'Bombardier CRJ200', 50, 'Hartsfield-Jackson'),
-('FFA0019', 'Bombardier CRJ700', 70, 'Beijing Capital'),('FFA0020', 'Bombardier CRJ900', 90, 'Dubai International'),('FFA0021', 'Bombardier CRJ1000', 104, 'Tokyo Haneda'),
-('FFA0022', 'ATR 42', 48, 'Los Angeles International'),('FFA0023', 'ATR 72', 78, 'O Hare International'),('FFA0024', 'BAe 146', 112, 'Frankfurt'),
-('FFA0025', 'BAe Avro RJ70', 70, 'Singapore Changi'),('FFA0026', 'BAe Avro RJ85', 85, 'Incheon International'),('FFA0027', 'BAe Avro RJ100', 100, 'Denver International'),
-('FFA0028', 'BAe Jetstream 31', 19, 'Hong Kong International'),('FFA0029', 'BAe Jetstream 41', 29, 'Sydney Kingsford Smith'),('FFA0030', 'Fokker 50', 58, 'Doha Hamad'),
-('FFA0031', 'Fokker 70', 80, 'Schiphol'),('FFA0032', 'Fokker 100', 109, 'Heathrow'),('FFA0033', 'Saab 340', 34, 'Hartsfield-Jackson'),
-('FFA0034', 'Saab 2000', 50, 'Beijing Capital'),('FFA0035', 'Cessna 208', 9, 'Dubai International'),('FFA0036', 'Cessna 402', 9, 'Tokyo Haneda'),
-('FFA0037', 'Cessna 404', 9, 'Los Angeles International'),('FFA0038', 'Cessna 414', 9, 'O Hare International'),('FFA0039', 'Cessna 421', 9, 'Frankfurt'),
-('FFA0040', 'Cessna 441', 9, 'Singapore Changi'),('FFA0041', 'Cessna Citation', 9, 'Incheon International'),('FFA0042', 'Cessna Conquest', 9, 'Denver International'),
-('FFA0043', 'Cessna Mustang', 9, 'Hong Kong International'),('FFA0044', 'Cessna Skyhawk', 9, 'Sydney Kingsford Smith'),('FFA0045', 'Cessna Skylane', 9, 'Doha Hamad'),
-('FFA0046', 'Cessna Stationair', 9, 'Schiphol'),('FFA0047', 'Cessna TTx', 9, 'Heathrow'),('FFA0048', 'Cessna Turbo Stationair', 9, 'Hartsfield-Jackson'),
-('FFA0049', 'Cessna Turbo Skylane', 9, 'Beijing Capital'),('FFA0050', 'Cessna Turbo Stationair', 9, 'Dubai International'),
-('FFA0051', 'Cessna Testing', 3, 'Dubai International');
+('FFA12345', 'Boeing 737', 215, 'Schiphol'),('FFA12346', 'Boeing 747', 416, 'Heathrow'),('FFA12347', 'Boeing 757', 295, 'Hartsfield-Jackson'),
+('FFA12348', 'Boeing 767', 375, 'Beijing Capital'),('FFA12349', 'Boeing 777', 550, 'Dubai International'),('FFA12350', 'Boeing 787', 330, 'Tokyo Haneda'),
+('FFA12351', 'Airbus A300', 266, 'Los Angeles International'),('FFA12352', 'Airbus A310', 280, 'O Hare International'),('FFA12353', 'Airbus A320', 180, 'Frankfurt'),
+('FFA12354', 'Airbus A330', 335, 'Singapore Changi'),('FFA12355', 'Airbus A340', 440, 'Incheon International'),('FFA12356', 'Airbus A350', 325, 'Denver International'),
+('FFA12357', 'Airbus A380', 853, 'Hong Kong International'),('FFA12358', 'Embraer E170', 80, 'Sydney Kingsford Smith'),('FFA12359', 'Embraer E175', 88, 'Doha Hamad'),
+('FFA12360', 'Embraer E190', 106, 'Schiphol'),('FFA12361', 'Embraer E195', 124, 'Heathrow'),('FFA12362', 'Bombardier CRJ200', 50, 'Hartsfield-Jackson'),
+('FFA12363', 'Bombardier CRJ700', 70, 'Beijing Capital'),('FFA12364', 'Bombardier CRJ900', 90, 'Dubai International'),('FFA12365', 'Bombardier CRJ1000', 104, 'Tokyo Haneda'),
+('FFA12366', 'ATR 42', 48, 'Los Angeles International'),('FFA12367', 'ATR 72', 78, 'O Hare International'),('FFA12368', 'BAe 146', 112, 'Frankfurt'),
+('FFA12369', 'BAe Avro RJ70', 70, 'Singapore Changi'),('FFA12370', 'BAe Avro RJ85', 85, 'Incheon International'),('FFA12371', 'BAe Avro RJ100', 100, 'Denver International'),
+('FFA12372', 'BAe Jetstream 31', 19, 'Hong Kong International'),('FFA12373', 'BAe Jetstream 41', 29, 'Sydney Kingsford Smith'),('FFA12374', 'Fokker 50', 58, 'Doha Hamad'),
+('FFA12375', 'Fokker 70', 80, 'Schiphol'),('FFA12376', 'Fokker 100', 109, 'Heathrow'),('FFA12377', 'Saab 340', 34, 'Hartsfield-Jackson'),
+('FFA12378', 'Saab 2000', 50, 'Beijing Capital'),('FFA12379', 'Cessna 208', 9, 'Dubai International'),('FFA12380', 'Cessna 402', 9, 'Tokyo Haneda'),
+('FFA12381', 'Cessna 404', 9, 'Los Angeles International'),('FFA12382', 'Cessna 414', 9, 'O Hare International'),('FFA12383', 'Cessna 421', 9, 'Frankfurt'),
+('FFA12384', 'Cessna 441', 9, 'Singapore Changi'),('FFA12385', 'Cessna Citation', 9, 'Incheon International'),('FFA12386', 'Cessna Conquest', 9, 'Denver International'),
+('FFA12387', 'Cessna Mustang', 9, 'Hong Kong International'),('FFA12388', 'Cessna Skyhawk', 9, 'Sydney Kingsford Smith'),('FFA12389', 'Cessna Skylane', 9, 'Doha Hamad'),
+('FFA12390', 'Cessna Stationair', 9, 'Schiphol'),('FFA12391', 'Cessna TTx', 9, 'Heathrow'),('FFA12392', 'Cessna Turbo Stationair', 9, 'Hartsfield-Jackson'),
+('FFA12393', 'Cessna Turbo Skylane', 9, 'Beijing Capital'),('FFA12394', 'Cessna Turbo Stationair', 9, 'Dubai International'),
+('FFA12395', 'Cessna Testing', 3, 'Dubai International');
+
 
 -- Initial flights
 INSERT INTO flights (flight_number, estimated_time_of_departure, estimated_time_of_arrival, airplane_code, departure_airport_name, arrival_airport_name, filled_seats) VALUES
-('FFA12010001SCHE', '2024-12-01 08:00:00', '2024-12-01 10:00:00', 'FFA0001', 'Schiphol', 'Frankfurt', 0),
-('FFA12040003HABE', '2024-12-04 10:30:00', '2024-12-04 14:00:00', 'FFA0003', 'Hartsfield-Jackson', 'Heathrow', 0),
-('FFA12090005DUTO', '2024-12-09 12:15:00', '2024-12-09 18:30:00', 'FFA0050', 'Dubai International', 'Tokyo Haneda', 0),
-
-('TESTFLIGHT1', '2025-01-01 12:00:00', '2025-01-01 14:00:00', 'FFA0051', 'Dubai International', 'Tokyo Haneda', 0),
-('TESTFLIGHT2', '2025-02-01 12:00:00', '2025-02-01 14:00:00', 'FFA0051', 'Tokyo Haneda', 'Doha Hamad', 0),
-('TESTFLIGHT3', '2025-03-01 12:00:00', '2025-03-01 14:00:00', 'FFA0051', 'Doha Hamad', 'Dubai International', 0);
+('TESTFLIGHT1', '2025-01-01 12:00:00', '2025-01-01 14:00:00', 'FFA12395', 'Dubai International', 'Tokyo Haneda', 0),
+('TESTFLIGHT2', '2025-02-01 12:00:00', '2025-02-01 14:00:00', 'FFA12395', 'Tokyo Haneda', 'Doha Hamad', 0),
+('TESTFLIGHT3', '2025-03-01 12:00:00', '2025-03-01 14:00:00', 'FFA12395', 'Doha Hamad', 'Dubai International', 0);

@@ -1,12 +1,14 @@
 package com.ffa.FFA_flight_booking_system.services;
 
 import com.ffa.FFA_flight_booking_system.dto.AirportDTO;
+import com.ffa.FFA_flight_booking_system.exceptions.NotFoundException;
 import com.ffa.FFA_flight_booking_system.models.Airplane;
 import com.ffa.FFA_flight_booking_system.models.Airport;
 import com.ffa.FFA_flight_booking_system.repositories.AirportRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -19,17 +21,39 @@ public class AirportService {
         this.airportRepository = airportRepository;
     }
 
-    public List<Airport> findAll() {
-        return airportRepository.findAll();
+    public List<AirportDTO> findAll() {
+        List<Airport> airports = airportRepository.findAll();
+        List<AirportDTO> airportDTOS = new ArrayList<>();
+        for (Airport airport : airports) {
+            airportDTOS.add(fromAirport(airport));
+        }
+        return airportDTOS;
     }
 
-    public AirportDTO findByAirportName(String airportName) {
-        Airport airport = airportRepository.findByAirportName(airportName);
-        return fromAirport(airport);
+    public Airport findByAirportName(String airportName) {
+        return airportRepository.findByAirportName(airportName).orElse(null);
     }
 
-    public Airport save(Airport airport) {
-        return airportRepository.save(airport);
+    public AirportDTO save(AirportDTO airportDTO) {
+        try {
+            if (airportDTO == null) {
+                throw new NotFoundException("Airport not found");
+            }
+
+            Airport airport = toAirport(airportDTO);
+            airportRepository.save(airport);
+            return airportDTO;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save airport");
+        }
+    }
+
+    public void deleteAirport(String airportName) {
+        airportRepository.deleteById(airportName);
+    }
+
+    public void deleteAllAirports() {
+        airportRepository.deleteAll();
     }
 
     public List<Airport> saveAll(List<Airport> airports) {

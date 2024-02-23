@@ -33,6 +33,7 @@ public class Airplane {
             orphanRemoval = true,
             fetch = FetchType.EAGER
     )
+    @JsonIgnore
     private Set<Flight> flights = new HashSet<>();
 
     public Airport getResidingAirport() {
