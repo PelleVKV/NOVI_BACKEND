@@ -31,16 +31,18 @@ public class ReservationService {
         this.flightService = flightService;
     }
 
-    public List<ReservationDTO> getAllReservations() {
+    public List<ReservationDTO> getAllReservations() throws NotFoundException {
         try {
             List<Reservation> reservations = reservationRepository.findAll();
             List<ReservationDTO> reservationDTOS = new ArrayList<>();
             for (Reservation reservation : reservations) {
-                reservationDTOS.add(fromReservation(reservation));
+                if (reservation != null) {
+                    reservationDTOS.add(fromReservation(reservation));
+                }
             }
             return reservationDTOS;
         } catch (Exception e) {
-            return null;
+            throw new NotFoundException("Error returning all reservations");
         }
     }
 
@@ -63,6 +65,30 @@ public class ReservationService {
         } catch (Exception e) {
             logger.error("Failed to create reservation {}", e.getMessage(), e);
             throw new RuntimeException("Failed to create reservation", e);
+        }
+    }
+
+    public ResponseEntity<Object> updateReservationByReservationNumber(String reservationNumber, ReservationDTO updatedReservationDTO) {
+        try {
+            Reservation existingReservation = reservationRepository.findByReservationNumber(reservationNumber);
+
+            if (existingReservation != null) {
+                Reservation updatedReservation = toReservation(updatedReservationDTO);
+
+                if (!updatedReservation.getUser().getUsername().equals(existingReservation.getUser().getUsername())) {
+                    return ResponseEntity.badRequest().build();
+                }
+
+                existingReservation.setFlight(updatedReservation.getFlight());
+                reservationRepository.save(existingReservation);
+
+                return ResponseEntity.noContent().build();
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            logger.error("Failed to update reservation {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

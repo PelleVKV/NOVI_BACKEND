@@ -22,8 +22,6 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
 
-    private PasswordEncoder passwordEncoder;
-
     @Autowired
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -66,6 +64,22 @@ public class UserService {
     public String createUser(UserDTO dto) {
         User newUser = userRepository.save(toUser(dto));
         return newUser.getUsername();
+    }
+
+    public UserDTO updateUserByUsername(String username, UserDTO updatedUserDTO) {
+        Optional<User> existingUserOptional = userRepository.findByUsername(username);
+
+        if (existingUserOptional.isPresent()) {
+            User existingUser = existingUserOptional.get();
+            existingUser.setUsername(updatedUserDTO.getUsername());
+            existingUser.setPassword(updatedUserDTO.getPassword());
+            existingUser.setEnabled(updatedUserDTO.isEnabled());
+            User updatedUser = userRepository.save(existingUser);
+
+            return fromUser(updatedUser);
+        } else {
+            return null;
+        }
     }
 
     public List<User> createUsers(List<User> users) {

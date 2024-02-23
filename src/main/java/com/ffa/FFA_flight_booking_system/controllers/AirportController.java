@@ -75,6 +75,27 @@ public class AirportController {
         return ResponseEntity.ok().body(airportService.saveAll(airports));
     }
 
+    // PUT MAPPING, CHANGING DATA
+
+    @PutMapping("/atc/airport/{airportName}")
+    public ResponseEntity<String> updateAirport(
+            @PathVariable String airportName,
+            @RequestBody AirportDTO updatedAirportDTO) {
+        try {
+            // Validation check
+            if (airportName == null || updatedAirportDTO == null) {
+                return ResponseEntity.badRequest().body("Invalid input for updating airport");
+            }
+
+            // Update the airport
+            airportService.updateAirport(airportName, updatedAirportDTO);
+            return ResponseEntity.ok().body("Successfully updated airport " + airportName);
+        } catch (Exception e) {
+            logger.error("Error updating airport: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body("Error updating airport " + e.getMessage());
+        }
+    }
+
     // DELETE MAPPING, DELETE DATA
 
     @DeleteMapping("/atc/airport/{airportName}")

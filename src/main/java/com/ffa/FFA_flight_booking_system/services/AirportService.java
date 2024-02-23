@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -32,6 +33,22 @@ public class AirportService {
 
     public Airport findByAirportName(String airportName) {
         return airportRepository.findByAirportName(airportName).orElse(null);
+    }
+
+    public void updateAirport(String airportName, AirportDTO updatedAirportDTO) throws NotFoundException {
+        Optional<Airport> existingAirportOptional = airportRepository.findByAirportName(airportName);
+
+        if (existingAirportOptional.isPresent()) {
+            Airport existingAirport = existingAirportOptional.get();
+
+            existingAirport.setAirportName(updatedAirportDTO.getAirportName());
+            existingAirport.setAirportCountry(updatedAirportDTO.getAirportCountry());
+            existingAirport.setAirportCity(updatedAirportDTO.getAirportCity());
+
+            airportRepository.save(existingAirport);
+        } else {
+            throw new NotFoundException("Airport not found");
+        }
     }
 
     public AirportDTO save(AirportDTO airportDTO) {
