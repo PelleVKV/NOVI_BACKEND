@@ -90,6 +90,22 @@ public class FlightService {
     }
 
     @Transactional
+    public void updateFlight(String flightNumber, FlightDTO updatedFlightDTO) throws NotFoundException {
+        Flight existingFlight = flightRepository.findByFlightNumber(flightNumber);
+
+        if (existingFlight != null) {
+            existingFlight.setFlightNumber(updatedFlightDTO.getFlightNumber());
+            existingFlight.setFilledSeats(updatedFlightDTO.getFilledSeats());
+            existingFlight.setEtd(updatedFlightDTO.getEtd());
+            existingFlight.setEta(updatedFlightDTO.getEta());
+
+            flightRepository.save(existingFlight);
+        } else {
+            throw new NotFoundException("Flight not found");
+        }
+    }
+
+    @Transactional
     public void updateFilledSeats(String flightNumber, int seatsToUpdate) throws CapacityExceededException, NotFoundException {
         Flight flight = flightRepository.findByFlightNumber(flightNumber);
 

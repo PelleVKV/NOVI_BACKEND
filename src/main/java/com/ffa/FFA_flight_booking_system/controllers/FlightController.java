@@ -70,6 +70,20 @@ public class FlightController {
         }
     }
 
+    // PUT MAPPING, CHANGING DATA
+
+    @PutMapping("/atc/flight/{flightNumber}")
+    public ResponseEntity<String> updateFlight(@PathVariable String flightNumber, @RequestBody FlightDTO updatedFlightDTO) {
+        try {
+            flightService.updateFlight(flightNumber, updatedFlightDTO);
+            return ResponseEntity.ok("Flight updated successfully");
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Flight not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating flight");
+        }
+    }
+
     // DELETE MAPPING, DELETING DATA
 
     @DeleteMapping("/atc/flight/{flightNumber}")
