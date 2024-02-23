@@ -1,8 +1,11 @@
 package com.ffa.FFA_flight_booking_system.controllers;
 
+import com.ffa.FFA_flight_booking_system.dto.AirplaneDTO;
 import com.ffa.FFA_flight_booking_system.dto.AirportDTO;
+import com.ffa.FFA_flight_booking_system.exceptions.NotFoundException;
 import com.ffa.FFA_flight_booking_system.models.Airplane;
 import com.ffa.FFA_flight_booking_system.models.Airport;
+import com.ffa.FFA_flight_booking_system.models.Reservation;
 import com.ffa.FFA_flight_booking_system.services.AirplaneService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/airplanes")
+@RequestMapping
 public class AirplaneController {
     private final AirplaneService airplaneService;
 
@@ -24,40 +27,60 @@ public class AirplaneController {
 
     // GET MAPPING, RETRIEVING DATA
 
-    @GetMapping
-    public ResponseEntity<List<Airplane>> getAllAirplanes() {
-        return ResponseEntity.ok().body(airplaneService.getAllAirplanes());
+    @GetMapping("/airplane/all")
+    public ResponseEntity<List<AirplaneDTO>> getAllAirplanes() {
+        List<AirplaneDTO> airplane = airplaneService.getAllAirplanes();
+        return ResponseEntity.ok(airplane);
     }
 
-    @GetMapping("/{airplaneCode}")
-    public ResponseEntity<Airplane> getAirplaneByAirplaneCode(@PathVariable String airplaneCode) {
-        return ResponseEntity.ok().body(airplaneService.getAirplaneByAirplaneCode(airplaneCode));
+    @GetMapping("/airplane/{airplaneCode}")
+    public ResponseEntity<AirplaneDTO> getAirplaneByAirplaneCode(@PathVariable String airplaneCode) throws NotFoundException {
+        try {
+            AirplaneDTO airplaneDTO = airplaneService.getAirplaneByAirplaneCode(airplaneCode);
+            return ResponseEntity.ok().body(airplaneDTO);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     // POST MAPPING, SAVING DATA
 
-    @PostMapping("/create")
-    public ResponseEntity<Airplane> saveAirplane(@RequestBody Airplane airplane) {
-        return ResponseEntity.ok().body(airplaneService.saveAirplane(airplane));
-    }
-
-    @PostMapping("/create_multiple")
-    public ResponseEntity<List<Airplane>> saveAirplanes(@RequestBody List<Airplane> airplanes) {
-        return ResponseEntity.ok().body(airplaneService.saveAirplanes(airplanes));
+    @PostMapping("/atc/airplane")
+    public ResponseEntity<String> saveAirplane(@RequestBody AirplaneDTO airplaneDTO) {
+        try {
+            if (airplaneDTO == null) {
+                return ResponseEntity.badRequest().body("Error: invalid airplane data");
+            }
+            airplaneService.saveAirplane(airplaneDTO);
+            return ResponseEntity.ok().body("Successfully created airplane");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error saving airplane" + e.getMessage());
+        }
     }
 
     // DELETE MAPPING, DELETING DATA
 
-    @DeleteMapping("/delete/{airplaneCode}")
+    @DeleteMapping("/atc/airplane/{airplaneCode}")
     public ResponseEntity<String> deleteAirplane(@PathVariable String airplaneCode) {
         try {
-            Airplane airplane = airplaneService.getAirplaneByAirplaneCode(airplaneCode);
+            AirplaneDTO airplaneDTO = airplaneService.getAirplaneByAirplaneCode(airplaneCode);
+            Airplane airplane = airplaneService.toAirplane(airplaneDTO);
             if (airplane != null) {
                 airplaneService.deleteAirplane(airplaneCode);
                 return new ResponseEntity<>("Airplane succesfully deleted.", HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("Something went wrong deleting airplane", HttpStatus.NOT_FOUND);
             }
+        } catch (Exception e) {
+            return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/atc/airplane/all")
+    public ResponseEntity<String> deleteAllAirplanes() {
+        try {
+            airplaneService.deleteAllAirplanes();
+            return new ResponseEntity<>("Airplanes successfully deleted", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
         }

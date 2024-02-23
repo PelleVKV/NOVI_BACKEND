@@ -1,5 +1,6 @@
 package com.ffa.FFA_flight_booking_system.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ffa.FFA_flight_booking_system.models.Airplane;
 
 import javax.validation.constraints.NotBlank;
@@ -12,6 +13,7 @@ public class AirportDTO {
     public String airportCountry;
     @NotBlank
     public String airportCity;
+    @JsonIgnore
     private Set<Airplane> airplanes;
 
     public AirportDTO(String airportName, String airportCountry, String airportCity) {
@@ -54,4 +56,5 @@ public class AirportDTO {
     public void setAirplanes(Set<Airplane> airplanes) {
         this.airplanes = airplanes;
     }
+
 }

@@ -1,12 +1,13 @@
 package com.ffa.FFA_flight_booking_system.services;
 
+import com.ffa.FFA_flight_booking_system.dto.AirplaneDTO;
 import com.ffa.FFA_flight_booking_system.dto.AirportDTO;
+import com.ffa.FFA_flight_booking_system.dto.FlightDTO;
 import com.ffa.FFA_flight_booking_system.exceptions.NotFoundException;
 import com.ffa.FFA_flight_booking_system.models.Airplane;
 import com.ffa.FFA_flight_booking_system.models.Airport;
 import com.ffa.FFA_flight_booking_system.models.Flight;
 import com.ffa.FFA_flight_booking_system.repositories.AirplaneRepository;
-import org.hibernate.hql.internal.ast.tree.FkRefNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,68 +17,77 @@ import java.util.*;
 @Service
 public class AirplaneService {
     private final AirplaneRepository airplaneRepository;
+    private final AirportService airportService;
 
     @Autowired
-    public AirplaneService(AirplaneRepository airplaneRepository) {
+    public AirplaneService(AirplaneRepository airplaneRepository, AirportService airportService) {
         this.airplaneRepository = airplaneRepository;
+        this.airportService = airportService;
     }
 
-    public List<Airplane> getAllAirplanes() {
-        return airplaneRepository.findAll();
+    public List<AirplaneDTO> getAllAirplanes() {
+        List<Airplane> airplanes = airplaneRepository.findAll();
+        List<AirplaneDTO> airplaneDTOS = new ArrayList<>();
+        for (Airplane airplane : airplanes) {
+            airplaneDTOS.add(fromAirplane(airplane));
+        }
+        return airplaneDTOS;
     }
 
-    public Airplane getAirplaneByAirplaneCode(String airplaneCode) {
-        return airplaneRepository.findByAirplaneCode(airplaneCode).orElse(null);
+    public AirplaneDTO getAirplaneByAirplaneCode(String airplaneCode) throws NotFoundException {
+        Airplane airplane = airplaneRepository.findByAirplaneCode(airplaneCode).orElse(null);
+
+        if (airplane == null) {
+            throw new NotFoundException("Airplane data invalid");
+        }
+
+        return fromAirplane(airplane);
+    }
+
+    public void deleteAllAirplanes() {
+        airplaneRepository.deleteAll();
     }
 
     public AirportDTO getResidingAirport(String airplaneCode, LocalDateTime departureDate) {
         try {
-            Airplane airplane = getAirplaneByAirplaneCode(airplaneCode);
-
+            AirplaneDTO airplaneDTO = getAirplaneByAirplaneCode(airplaneCode);
+            Airplane airplane = toAirplane(airplaneDTO);
             Set<Flight> flights = airplane.getFlights();
-            List<Flight> flightList = new ArrayList<>(flights);
-            flightList.sort(Comparator.comparing(Flight::getEtd));
-
-            // Binding new residing airport after flight to flight dates
-            LinkedHashMap<Airport, AbstractMap.SimpleEntry<LocalDateTime, LocalDateTime>> flightPeriods = new LinkedHashMap<>();
-            for (Flight flight : flightList) {
-                flightPeriods.put(flight.getArrivalAirport(), new AbstractMap.SimpleEntry<>(flight.getEtd(), flight.getEta()));
-            }
 
             LocalDateTime rightDate = null;
             Airport currentResidingAirport = null;
-            for (HashMap.Entry<Airport, AbstractMap.SimpleEntry<LocalDateTime, LocalDateTime>> flightPeriod : flightPeriods.entrySet()) {
-                // Getting new Airport, departure date and arrival date in set
-                Airport airport = flightPeriod.getKey();
-                LocalDateTime date1 = flightPeriod.getValue().getKey();
-                LocalDateTime date2 = flightPeriod.getValue().getValue();
 
-                // If departureDate is between date 1 and 2 then the airplane is not available
+            for (Flight flight : flights.stream().sorted(Comparator.comparing(Flight::getEtd)).toList()) {
+                LocalDateTime date1 = flight.getEtd();
+                LocalDateTime date2 = flight.getEta();
+
                 if (departureDate.isAfter(date1) && departureDate.isBefore(date2)) {
                     return null;
                 }
 
-                // Checking if this date is before the departureDate, if found select the new residing airport
                 if (date2.isBefore(departureDate)) {
                     rightDate = date2;
-                    currentResidingAirport = airport;
+                    currentResidingAirport = flight.getArrivalAirport();
                 }
             }
 
-            if (rightDate != null) {
-                return AirportService.fromAirport(currentResidingAirport);
-            } else {
-                // Return initial residing airport if nothing found
-                Airplane airplane1 = getAirplaneByAirplaneCode(airplaneCode);
-                return AirportService.fromAirport(airplane1.getResidingAirport());
-            }
+            return (rightDate != null) ? AirportService.fromAirport(currentResidingAirport) : AirportService.fromAirport(airplane.getResidingAirport());
         } catch (Exception e) {
             throw new RuntimeException("Failed to get current airport");
         }
     }
 
-    public Airplane saveAirplane(Airplane airplane) {
-        return airplaneRepository.save(airplane);
+    public void saveAirplane(AirplaneDTO airplaneDTO) {
+        try {
+            if (airplaneDTO == null) {
+                throw new NotFoundException("Airplane not found");
+            }
+
+            Airplane airplane = toAirplane(airplaneDTO);
+            airplaneRepository.save(airplane);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save airport");
+        }
     }
 
     public List<Airplane> saveAirplanes(List<Airplane> airplanes) {
@@ -86,6 +96,31 @@ public class AirplaneService {
 
     public void deleteAirplane(String airplaneCode) {
         airplaneRepository.deleteById(airplaneCode);
+    }
+
+    public static AirplaneDTO fromAirplane(Airplane airplane) {
+        var dto = new AirplaneDTO();
+
+        dto.setAirplaneCode(airplane.getAirplaneCode());
+        dto.setAirplaneType(airplane.getAirplaneType());
+        dto.setAirplaneCapacity(airplane.getAirplaneCapacity());
+        dto.setResidingAirport(airplane.getResidingAirport().getAirportName());
+        dto.setFlights(airplane.getFlights());
+
+        return dto;
+    }
+
+    public Airplane toAirplane(AirplaneDTO dto) {
+        var airplane = new Airplane();
+
+        airplane.setAirplaneCode(dto.getAirplaneCode());
+        airplane.setAirplaneType(dto.getAirplaneType());
+        airplane.setAirplaneCapacity(dto.getAirplaneCapacity());
+
+        Airport airport = airportService.findByAirportName(dto.getResidingAirport());
+        airplane.setResidingAirport(airport);
+
+        return airplane;
     }
 
 }

@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -54,7 +55,7 @@ public class ReservationController {
     }
 
     @GetMapping("/{reservationNumber}")
-    public ResponseEntity<Object> getReservationByReservationNumber(@PathVariable String reservationNumber) {
+    public ResponseEntity<ReservationDTO> getReservationByReservationNumber(@PathVariable String reservationNumber) {
         ReservationDTO reservationDTO = reservationService.getReservationByReservationNumber(reservationNumber);
         if (reservationDTO != null) {
             return ResponseEntity.ok().body(reservationDTO);
@@ -77,6 +78,7 @@ public class ReservationController {
             UserDTO currentUser = userService.getUser(userDetails.getUsername());
             boolean hasAdminAuth = userService.hasAdminAuthority(currentUser);
 
+            // Cannot download reservation from different user account, unless user got ADMIN auth
             if (!currentUser.getUsername().equals(reservation.getUser().getUsername()) && !hasAdminAuth) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
@@ -86,7 +88,6 @@ public class ReservationController {
             headers.setContentDispositionFormData("attachment", "reservation.csv");
 
             byte[] bytes = csvGeneratorUtil.generateCsv(reservationNumber).getBytes();
-
             return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
         } catch (Exception e) {
             logger.error("Error downloading reservation with number {}: {}", reservationNumber, e.getMessage(), e);
@@ -97,14 +98,14 @@ public class ReservationController {
     // POST MAPPING, SENDING DATA
 
     @PostMapping("/create_reservation")
-    public ResponseEntity<ReservationDTO> createReservation(@RequestBody ReservationDTO reservationDTO, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<String> createReservation(@RequestBody ReservationDTO reservationDTO, @AuthenticationPrincipal UserDetails userDetails) {
         try {
             User user = userService.toUser(userService.getUser(reservationDTO.getUsername()));
             FlightDTO flightDTO = flightService.getFlightByFlightNumber(reservationDTO.getFlightNumber());
             Flight flight = flightService.toFlight(flightDTO);
             // Validation Checks
             if (userDetails == null || user == null || flight == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+                return ResponseEntity.badRequest().body("Error: invalid reservation details");
             }
 
             UserDTO currentUser = userService.getUser(userDetails.getUsername());
@@ -112,46 +113,82 @@ public class ReservationController {
 
             // Can only create reservation for other profiles, except ADMIN
             if (!userDetails.getUsername().equals(reservationDTO.getUsername()) && !hasAdminAuth) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Error: Can only create reservation for other profiles");
+            }
+
+            // Validating scenarios of not unique id and where user already got reservation on flight
+            List<Reservation> reservations = new ArrayList<>(flightDTO.getReservations());
+            for (Reservation reservation : reservations) {
+                if (reservation.getReservationNumber().equals(reservationDTO.reservationNumber)) {
+                    return ResponseEntity.badRequest().body("Error: duplicate reservation number found");
+                }
+                if (reservation.getUser().getUsername().equals(reservationDTO.getUsername())) {
+                    return ResponseEntity.badRequest().body("Error: duplicate reservation on user account found");
+                }
             }
 
             // Can only make reservation if flight capacity is not met
             if (flight.getFilledSeats() >= flight.getAirplane().getAirplaneCapacity()) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                return ResponseEntity.badRequest().body("Error: capacity of this flight is full");
             }
 
-            flightService.incrementFilledSeats(flight.getFlightNumber(), 1);
-            return ResponseEntity.ok().body(reservationDTO);
+            // Success response and adding a filled seat to the reserved flight
+            flightService.updateFilledSeats(flight.getFlightNumber(), 1);
+            ReservationDTO savedReservation = reservationService.createReservation(reservationDTO);
+            return ResponseEntity.ok()
+                    .body("Success: created new reservation");
         } catch (Exception e) {
-            logger.error("Error creating reservation with number {}: {}", reservationDTO.getReservationNumber(), e.getMessage(), e);
-            return ResponseEntity.internalServerError().build();
+            logger.error("Error creating reservation {}: {}", reservationDTO.getReservationNumber(), e.getMessage(), e);
+            return ResponseEntity.internalServerError().body("Error creating reservation " + e.getMessage());
         }
     }
 
     // DELETE MAPPING, DELETE DATA
 
     @DeleteMapping("/{reservationNumber}")
-    public ResponseEntity<ReservationDTO> deleteReservation(@PathVariable String reservationNumber, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<String> deleteReservation(@PathVariable String reservationNumber, @AuthenticationPrincipal UserDetails userDetails) {
         try {
             ReservationDTO reservationDTO = reservationService.getReservationByReservationNumber(reservationNumber);
 
             UserDTO currentUser = userService.getUser(userDetails.getUsername());
             boolean hasAdminAuth = userService.hasAdminAuthority(currentUser);
 
-            // Only able to delete if ADMIN
-            if (!hasAdminAuth) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            // Validation check
+            if (reservationNumber == null) {
+                return ResponseEntity.badRequest().body("Error: invalid reservation data");
             }
 
-            if (reservationDTO != null) {
-                reservationService.deleteReservation(reservationDTO);
-                return ResponseEntity.ok(reservationDTO);
-            } else {
-                return ResponseEntity.notFound().build();
+            // Only able to delete own reservation, unless got ADMIN auth
+            if (!reservationDTO.getUsername().equals(currentUser.getUsername()) && !hasAdminAuth) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Error: cannot delete reservation that's not owned by current logged-in user");
             }
+
+            // Success response and retracting a filled seat from flight on canceled reservation
+            flightService.updateFilledSeats(reservationDTO.getFlightNumber(), -1);
+            reservationService.deleteReservation(reservationDTO);
+            return ResponseEntity.ok().body("Success: deleted reservation (" + reservationNumber + ")");
         } catch (Exception e) {
             logger.error("Error deleting reservation with number {}: {}", reservationNumber, e.getMessage(), e);
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("Error: error deleting reservation; " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/all")
+    public ResponseEntity<String> deleteAllReservations() {
+        try {
+            // Retracting a filled seat from the flight from every corresponding reservation
+            List<ReservationDTO> reservationsDTOS = reservationService.getAllReservations();
+            for (ReservationDTO reservationDTO: reservationsDTOS) {
+                flightService.updateFilledSeats(reservationDTO.getFlightNumber(), -1);
+            }
+
+            reservationService.deleteAllReservations();
+            return ResponseEntity.ok("Success: All reservations deleted");
+        } catch (Exception e) {
+            // Handle exceptions appropriately
+            return ResponseEntity.internalServerError().body("Error deleting reservations: " + e.getMessage());
         }
     }
 }

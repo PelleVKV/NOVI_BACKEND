@@ -3,7 +3,6 @@ package com.ffa.FFA_flight_booking_system.dto;
 import javax.validation.constraints.NotBlank;
 
 public class ReservationDTO {
-    @NotBlank
     public String reservationNumber;
     @NotBlank
     public String username;

@@ -31,8 +31,8 @@ public class CsvGeneratorUtil {
                             .append(reservationDTO.getFlightNumber()).append(",")
                             .append(flightService.getFlightByFlightNumber(reservationDTO.flightNumber).getEtd()).append(",")
                             .append(flightService.getFlightByFlightNumber(reservationDTO.flightNumber).getEta()).append(",")
-                            .append(flightService.getFlightByFlightNumber(reservationDTO.flightNumber).getDep_airport_name()).append(",")
-                            .append(flightService.getFlightByFlightNumber(reservationDTO.flightNumber).getArr_airport_name()).append(",");
+                            .append(flightService.getFlightByFlightNumber(reservationDTO.flightNumber).getDepAirportName()).append(",")
+                            .append(flightService.getFlightByFlightNumber(reservationDTO.flightNumber).getArrAirportName()).append(",");
                 }
             }
 

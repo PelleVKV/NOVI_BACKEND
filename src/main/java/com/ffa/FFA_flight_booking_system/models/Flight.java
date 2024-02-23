@@ -1,10 +1,10 @@
 package com.ffa.FFA_flight_booking_system.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.ffa.FFA_flight_booking_system.generators.PrefixCodeGenerator;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -15,7 +15,17 @@ import java.util.Set;
 @Table(name = "flights")
 public class Flight {
     @Id
-    @Column(name = "flight_number", unique = true)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "flight_number")
+    @GenericGenerator(
+            name = "flight_number",
+            strategy = "com.ffa.FFA_flight_booking_system.generators.PrefixCodeGenerator",
+            parameters = {
+                    @Parameter(name = PrefixCodeGenerator.INCREMENT_PARAM, value = "50"),
+                    @Parameter(name = PrefixCodeGenerator.VALUE_PREFIX_PARAMETER, value = "FFA"),
+                    @Parameter(name = PrefixCodeGenerator.VALUE_SUFFIX_PARAMETER, value = "FL"),
+                    @Parameter(name = PrefixCodeGenerator.NUMBER_FORMAT_PARAMETER, value = "%05d")
+            })
+    @Column(name = "flight_number", nullable = false, unique = true)
     private String flightNumber;
 
     @Column(name = "estimated_time_of_departure", nullable = false)
@@ -32,12 +42,12 @@ public class Flight {
     @JsonManagedReference
     private Airplane airplane;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "departure_airport_name")
     @JsonBackReference
     private Airport departureAirport;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "arrival_airport_name")
     @JsonBackReference
     private Airport arrivalAirport;
@@ -45,9 +55,9 @@ public class Flight {
     @OneToMany(
             targetEntity =  Reservation.class,
             mappedBy = "flight",
-            cascade = CascadeType.ALL,
+            cascade = CascadeType.REMOVE,
             orphanRemoval = true,
-            fetch = FetchType.LAZY
+            fetch = FetchType.EAGER
     )
     @JsonManagedReference
     private Set<Reservation> reservations = new HashSet<>();
