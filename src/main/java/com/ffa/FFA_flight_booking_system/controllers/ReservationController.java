@@ -4,6 +4,7 @@ import com.ffa.FFA_flight_booking_system.dto.FlightDTO;
 import com.ffa.FFA_flight_booking_system.dto.ReservationDTO;
 import com.ffa.FFA_flight_booking_system.dto.UserDTO;
 import com.ffa.FFA_flight_booking_system.exceptions.CapacityExceededException;
+import com.ffa.FFA_flight_booking_system.exceptions.NotFoundException;
 import com.ffa.FFA_flight_booking_system.models.Authority;
 import com.ffa.FFA_flight_booking_system.models.Flight;
 import com.ffa.FFA_flight_booking_system.models.Reservation;
@@ -50,7 +51,7 @@ public class ReservationController {
     // GET MAPPING, RETRIEVING DATA
 
     @GetMapping
-    public List<ReservationDTO> getAllReservations() {
+    public List<ReservationDTO> getAllReservations() throws NotFoundException {
         return reservationService.getAllReservations();
     }
 
@@ -142,6 +143,15 @@ public class ReservationController {
             logger.error("Error creating reservation {}: {}", reservationDTO.getReservationNumber(), e.getMessage(), e);
             return ResponseEntity.internalServerError().body("Error creating reservation " + e.getMessage());
         }
+    }
+
+    // PUT MAPPING, CHANGING DATA
+
+    @PutMapping("/{reservationNumber}")
+    public ResponseEntity<Object> updateReservationByReservationNumber(
+            @PathVariable String reservationNumber,
+            @RequestBody ReservationDTO updatedReservationDTO) {
+        return reservationService.updateReservationByReservationNumber(reservationNumber, updatedReservationDTO);
     }
 
     // DELETE MAPPING, DELETE DATA

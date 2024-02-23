@@ -58,6 +58,20 @@ public class AirplaneController {
         }
     }
 
+    // PUT MAPPING, CHANGING DATA
+
+    @PutMapping("/atc/airplane/{airplaneCode}")
+    public ResponseEntity<String> updateAirplane(@PathVariable String airplaneCode, @RequestBody AirplaneDTO updatedAirplaneDTO) {
+        try {
+            airplaneService.updateAirplane(airplaneCode, updatedAirplaneDTO);
+            return ResponseEntity.ok().body("Airplane successfully updated");
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Internal Server Error");
+        }
+    }
+
     // DELETE MAPPING, DELETING DATA
 
     @DeleteMapping("/atc/airplane/{airplaneCode}")

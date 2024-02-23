@@ -48,6 +48,22 @@ public class AirplaneService {
         airplaneRepository.deleteAll();
     }
 
+    public void updateAirplane(String airplaneCode, AirplaneDTO updatedAirplaneDTO) throws NotFoundException {
+        AirplaneDTO existingAirplaneDTO = getAirplaneByAirplaneCode(airplaneCode);
+
+        if (existingAirplaneDTO != null) {
+
+            existingAirplaneDTO.setAirplaneCode(updatedAirplaneDTO.getAirplaneCode());
+            existingAirplaneDTO.setAirplaneCapacity(updatedAirplaneDTO.getAirplaneCapacity());
+            existingAirplaneDTO.setResidingAirport(updatedAirplaneDTO.getResidingAirport());
+            existingAirplaneDTO.setAirplaneType(updatedAirplaneDTO.getAirplaneType());
+
+            saveAirplane(existingAirplaneDTO);
+        } else {
+            throw new NotFoundException("Airplane not found");
+        }
+    }
+
     public AirportDTO getResidingAirport(String airplaneCode, LocalDateTime departureDate) {
         try {
             AirplaneDTO airplaneDTO = getAirplaneByAirplaneCode(airplaneCode);

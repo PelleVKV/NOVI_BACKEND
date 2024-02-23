@@ -68,6 +68,11 @@ public class Airplane {
         this.airplaneCapacity = airplaneCapacity;
     }
 
+    public int calculateAvailableSeats() {
+        int totalFilledSeats = flights.stream().mapToInt(Flight::getFilledSeats).sum();
+        return airplaneCapacity - totalFilledSeats;
+    }
+
     public Set<Flight> getFlights() {
         return flights;
     }

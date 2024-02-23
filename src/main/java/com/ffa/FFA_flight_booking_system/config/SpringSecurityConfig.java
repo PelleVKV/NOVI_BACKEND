@@ -77,6 +77,9 @@ public class SpringSecurityConfig {
                         .antMatchers(HttpMethod.POST,"/atc/**").hasAuthority("ATC")
                         .antMatchers(HttpMethod.DELETE,"/atc/**").hasAuthority("ATC")
 
+                        .antMatchers(HttpMethod.GET,"/file/**").hasAnyAuthority("USER","ADMIN")
+                        .antMatchers(HttpMethod.POST,"/file/**").hasAnyAuthority("USER","ADMIN")
+
                         .antMatchers("/authority/authenticated").authenticated()
                         .antMatchers("/authority/authenticate").permitAll()
                         .anyRequest().authenticated()

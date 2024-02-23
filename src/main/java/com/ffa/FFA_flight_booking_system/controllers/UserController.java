@@ -101,6 +101,23 @@ public class UserController {
         }
     }
 
+    // PUT MAPPING, CHANGING DATA
+
+    @PutMapping("/{username}")
+    public ResponseEntity<UserDTO> updateUserByUsername(@PathVariable("username") String username, @RequestBody UserDTO updatedUserDTO) {
+        try {
+            UserDTO updatedUser = userService.updateUserByUsername(username, updatedUserDTO);
+            if (updatedUser != null) {
+                return ResponseEntity.ok(updatedUser);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception ex) {
+            logger.error("Error updating user with username {}: {}", username, ex.getMessage(), ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     // DELETE MAPPING, DELETING DATA
 
     @DeleteMapping("/{id}")

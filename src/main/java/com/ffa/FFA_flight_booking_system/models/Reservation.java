@@ -47,7 +47,15 @@ public class Reservation {
     }
 
     public void setUser(User user) {
+        if (this.user != null) {
+            this.user.getReservations().remove(this);
+        }
+
         this.user = user;
+
+        if (user != null) {
+            user.getReservations().add(this);
+        }
     }
 
     public Flight getFlight() {
